@@ -1,0 +1,7 @@
+process_management
+Task:
+Write an application that takes the name of the process to kill and kills it.<br>
+You can use to get processes https://docs.microsoft.com/en-us/windows/win32/api/Psapi/nf-psapi-enumprocesses
+Задача:
+Написать приложение которое принимает имя процесса который нужно убить и убивает его.
+Для получения процессов можно заюзать https://docs.microsoft.com/en-us/windows/win32/api/Psapi/nf-psapi-enumprocesses
