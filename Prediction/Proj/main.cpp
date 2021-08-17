@@ -86,11 +86,16 @@ int main()
 			}
 		}
 		WaitForMultipleObjects(thread2.size(), &thread2[0], TRUE, INFINITE);
+		std::for_each(thread2.begin(), thread2.end(), [](const auto& val) {
+			CloseHandle(val);
+			});
 		while (!isLocked)
 		{
 			Sleep(0);
 		};
 		WaitForSingleObject(thread0, INFINITE);
+		CloseHandle(thread0);
+
 		DeleteCriticalSection(&CriticalSectionTemp);
 		firstPrediction.FindingWinner();
 	}
