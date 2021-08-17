@@ -127,7 +127,7 @@ DWORD WINAPI Timer(LPVOID timeStart)
 	while (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() -
 		*static_cast<std::chrono::steady_clock::time_point*>(timeStart)).count() <= 72000)
 	{
-		Sleep(0);
+		Sleep(72000);
 	};
 	std::cout << "timer end" << std::endl;
 	isLocked = TRUE;
