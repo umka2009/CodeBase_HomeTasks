@@ -20,6 +20,10 @@ Gamble определяет победителя для этого находит ставку наиболее близкую к загадан
 Попробуйте синхронизировать доступ используя CriticalSection из Winapi
 */
 
+struct MyErrorException
+{
+	std::vector<std::string> myError = { "Can't open thread" };
+} errorVec ;
 struct FunctData
 {
 	FunctData(Gamble& firstP, std::vector<std::pair<std::string, int> >& userD)
@@ -36,48 +40,70 @@ DWORD WINAPI ThreadPrediction(LPVOID userData);
 
 int main()
 {
-	auto start = std::chrono::steady_clock::now();
-	std::cout << " Please enter user name and forecast number between 0 and 999 " << std::endl;
-	Gamble firstPrediction;
-	DWORD threadId = 0;
-	
-	HANDLE thead0 = CreateThread(
-		0,
-		0,
-		Timer,
-		(LPVOID)&start,
-		0,
-		&threadId
-
-	);
-	std::vector<std::pair<std::string, int> > userData(100, { "", {} });
-	InitUserData(userData);
-
-	DWORD threadId2 = 2;
-	std::vector<HANDLE> thead2 = {};
-	FunctData data(firstPrediction, userData);
-
-	InitializeCriticalSection(&CriticalSectionTemp);
-	
-	for (int i = 0;i < 5; ++i)
+	try
 	{
-		
-		thead2.emplace_back( CreateThread(
-			NULL,
+		auto start = std::chrono::steady_clock::now();
+		std::cout << " Please enter user name and forecast number between 0 and 999 " << std::endl;
+		Gamble firstPrediction;
+		DWORD threadId = 0;
+
+		HANDLE thread0 = CreateThread(
 			0,
-			ThreadPrediction,
-			(LPVOID)&data,
 			0,
-			&threadId2
-		));
-		
+			Timer,
+			(LPVOID)&start,
+			0,
+			&threadId
+
+		);
+		if (thread0 == 0)
+		{
+			throw errorVec.myError[0];
+		}
+		std::vector<std::pair<std::string, int> > userData(100, { "", {} });
+		InitUserData(userData);
+
+		DWORD threadId2 = 2;
+		std::vector<HANDLE> thread2 = {};
+		FunctData data(firstPrediction, userData);
+
+		InitializeCriticalSection(&CriticalSectionTemp);
+
+		for (int i = 0; i < 5; ++i)
+		{
+
+			thread2.emplace_back(CreateThread(
+				NULL,
+				0,
+				ThreadPrediction,
+				(LPVOID)&data,
+				0,
+				&threadId2
+			));
+			if (thread2[i] == 0)
+			{
+				throw errorVec.myError[0];
+			}
+		}
+
+		while (!isLocked)
+		{
+			Sleep(0);
+		};
+		WaitForSingleObject(thread0, INFINITE);
+		WaitForMultipleObjects(thread2.size(), &thread2[0], TRUE, INFINITE);
+		DeleteCriticalSection(&CriticalSectionTemp);
+		firstPrediction.FindingWinner();
 	}
-	
-	while (!isLocked);
-	WaitForSingleObject(thead0, INFINITE);
-	WaitForMultipleObjects(thead2.size(), &thead2[0], TRUE, INFINITE);
-	DeleteCriticalSection(&CriticalSectionTemp);
-	firstPrediction.FindingWinner();
+	catch (const MyErrorException& ex)
+	{
+		std::cout << &ex << " Error number : " << GetLastError() << std::endl;
+	}
+	catch (const std::exception& ex)
+	{
+		std::cout << &ex << std::endl;
+	}
+
 	
 	return 0;
 }
@@ -95,7 +121,10 @@ void InitUserData(std::vector<std::pair<std::string, int> >& userData)
 DWORD WINAPI Timer(LPVOID timeStart)
 {
 	while (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() -
-		*static_cast<std::chrono::steady_clock::time_point*>(timeStart)).count() <= 72000);
+		*static_cast<std::chrono::steady_clock::time_point*>(timeStart)).count() <= 72000)
+	{
+		Sleep(0);
+	};
 	std::cout << "timer end" << std::endl;
 	isLocked = TRUE;
 	return 0;
