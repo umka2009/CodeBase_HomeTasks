@@ -23,7 +23,7 @@ Gamble определяет победителя для этого находит ставку наиболее близкую к загадан
 struct MyErrorException
 {
 	std::vector<std::string> myError = { "Can't open thread" };
-} errorVec ;
+} errorVec;
 struct FunctData
 {
 	FunctData(Gamble& firstP, std::vector<std::pair<std::string, int> >& userD)
@@ -85,13 +85,12 @@ int main()
 				throw errorVec.myError[0];
 			}
 		}
-
+		WaitForMultipleObjects(thread2.size(), &thread2[0], TRUE, INFINITE);
 		while (!isLocked)
 		{
 			Sleep(0);
 		};
 		WaitForSingleObject(thread0, INFINITE);
-		WaitForMultipleObjects(thread2.size(), &thread2[0], TRUE, INFINITE);
 		DeleteCriticalSection(&CriticalSectionTemp);
 		firstPrediction.FindingWinner();
 	}
@@ -104,7 +103,7 @@ int main()
 		std::cout << &ex << std::endl;
 	}
 
-	
+
 	return 0;
 }
 
