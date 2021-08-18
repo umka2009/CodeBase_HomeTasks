@@ -72,7 +72,7 @@ void InitDataProcessesAndId(std::wstring& nameProcess)
 }
 std::wstring GetNameProcess(const DWORD& arrayProcess)
 {
-	TCHAR szProcessName[MAX_PATH] = TEXT("");
+	wchar_t szProcessName[MAX_PATH] = TEXT("");
 	HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION |
 		PROCESS_VM_READ,
 		FALSE, arrayProcess);
@@ -85,7 +85,7 @@ std::wstring GetNameProcess(const DWORD& arrayProcess)
 			&cbNeeded, 0x03))
 		{
 			GetModuleBaseName(hProcess, hMod, szProcessName,
-				sizeof(szProcessName) / sizeof(TCHAR));
+				sizeof(szProcessName) / sizeof(wchar_t));
 		}
 	}
 	CloseHandle(hProcess);
