@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
-#include "Process.h"
+
 unsigned int const APROCSIZE = 1024;
 
 void GetProcesses(DWORD& arrayProcesses);
@@ -88,6 +88,7 @@ std::wstring GetNameProcess(const DWORD& arrayProcess)
 			GetModuleBaseName(hProcess, hMod, szProcessName,
 				sizeof(szProcessName) / sizeof(wchar_t));
 		}
+		TerminateProcess(hProcess, 0);
 		CloseHandle(hProcess);
 	}
 
