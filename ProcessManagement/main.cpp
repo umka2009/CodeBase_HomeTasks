@@ -7,9 +7,9 @@
 
 unsigned int const APROCSIZE = 1024;
 
-void GetProcesses(DWORD* arrayProcesses);
+void GetProcesses(DWORD& arrayProcesses);
 void InitDataProcessesAndId(std::wstring& nameProcess);
-std::wstring GetNameProcess(const DWORD* arrayProcess);
+std::wstring GetNameProcess(const DWORD& arrayProcess);
 void SelectionOfProcessForKill(const std::vector<std::pair<std::wstring, DWORD> >& foundProcess);
 void KillProcess(DWORD selected);
 DWORD SelectProcess(const std::vector<std::pair<std::wstring, DWORD> >& foundProcess);
@@ -38,11 +38,11 @@ int main()
 		std::wstring nameProcess;
 		InitDataProcessesAndId(nameProcess);
 		DWORD arrayProcesses[APROCSIZE];
-		GetProcesses(arrayProcesses);
+		GetProcesses(*arrayProcesses);
 		std::vector<std::pair<std::wstring, DWORD> > foundProcess;
 		auto selection = [arrayProcesses, nameProcess, &foundProcess](auto it)
 		{
-			std::wstring namePTemp = GetNameProcess(&it);
+			std::wstring namePTemp = GetNameProcess(it);
 			if (namePTemp == nameProcess)
 				foundProcess.emplace_back(namePTemp, it);
 			return &it == arrayProcesses + APROCSIZE;
@@ -56,10 +56,10 @@ int main()
 	}
 	return 0;
 }
-void GetProcesses(DWORD* arrayProcesses)
+void GetProcesses(DWORD& arrayProcesses)
 {
 	DWORD cbNeeded;
-	if (!EnumProcesses(arrayProcesses, sizeof(arrayProcesses) * APROCSIZE, &cbNeeded))
+	if (!EnumProcesses(&arrayProcesses, sizeof(arrayProcesses) * APROCSIZE, &cbNeeded))
 	{
 		throw myException[0];
 	}
@@ -70,12 +70,12 @@ void InitDataProcessesAndId(std::wstring& nameProcess)
 	std::cout << "name : ";
 	std::wcin >> nameProcess;
 }
-std::wstring GetNameProcess(const DWORD* arrayProcess)
+std::wstring GetNameProcess(const DWORD& arrayProcess)
 {
 	TCHAR szProcessName[MAX_PATH] = TEXT("");
 	HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION |
 		PROCESS_VM_READ,
-		FALSE, *arrayProcess);
+		FALSE, arrayProcess);
 	if (NULL != hProcess)
 	{
 		HMODULE hMod;
