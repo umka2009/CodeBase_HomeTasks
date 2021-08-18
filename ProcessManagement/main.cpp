@@ -27,7 +27,8 @@ std::vector<MyFormatException> myException =
 L"Error Can not load Processes",         // 0
 L"Error Such a process does not exist",  // 1
 L"Error Open Process",					// 2
-L"Error Get Priority Class"				// 3
+L"Error Get Priority Class",			// 3
+L"Error Close Process"					// 4
 };
 
 
@@ -87,8 +88,10 @@ std::wstring GetNameProcess(const DWORD& arrayProcess)
 			GetModuleBaseName(hProcess, hMod, szProcessName,
 				sizeof(szProcessName) / sizeof(wchar_t));
 		}
+		TerminateProcess(hProcess, 0);
+		CloseHandle(hProcess);
 	}
-	CloseHandle(hProcess);
+
 	return szProcessName;
 }
 DWORD SelectProcess(const std::vector<std::pair<std::wstring, DWORD> >& foundProcess)
