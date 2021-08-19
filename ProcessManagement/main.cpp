@@ -8,7 +8,7 @@
 
 unsigned int const APROCSIZE = 1024;
 
-void GetProcesses(std::shared_ptr<DWORD[]>& arrayProcesses);
+void GetProcesses(DWORD& arrayProcesses);
 void InitDataProcessesAndId(std::wstring& nameProcess);
 std::wstring GetNameProcess(const DWORD& arrayProcess);
 void SelectionOfProcessForKill(const std::vector<std::pair<std::wstring, DWORD> >& foundProcess);
@@ -40,7 +40,7 @@ int main()
 		std::wstring nameProcess;
 		InitDataProcessesAndId(nameProcess);
 		std::shared_ptr<DWORD[]> arrayProcesses(new DWORD[APROCSIZE]);
-		GetProcesses(arrayProcesses);
+		GetProcesses(*arrayProcesses.get());
 		std::vector<std::pair<std::wstring, DWORD> > foundProcess;
 		auto selection = [arrayProcesses, nameProcess, &foundProcess](auto it)
 		{
@@ -58,10 +58,10 @@ int main()
 	}
 	return 0;
 }
-void GetProcesses(std::shared_ptr<DWORD[]>& arrayProcesses)
+void GetProcesses(DWORD& arrayProcesses)
 {
 	DWORD cbNeeded;
-	if (!EnumProcesses(arrayProcesses.get(), sizeof(arrayProcesses.get()) * APROCSIZE, &cbNeeded))
+	if (!EnumProcesses(&arrayProcesses, sizeof(arrayProcesses) * APROCSIZE, &cbNeeded))
 	{
 		throw myException[0];
 	}
