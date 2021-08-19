@@ -4,10 +4,11 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <memory>
 
 unsigned int const APROCSIZE = 1024;
 
-void GetProcesses(DWORD& arrayProcesses);
+void GetProcesses(std::shared_ptr<DWORD[]>& arrayProcesses);
 void InitDataProcessesAndId(std::wstring& nameProcess);
 std::wstring GetNameProcess(const DWORD& arrayProcess);
 void SelectionOfProcessForKill(const std::vector<std::pair<std::wstring, DWORD> >& foundProcess);
@@ -38,17 +39,17 @@ int main()
 	{
 		std::wstring nameProcess;
 		InitDataProcessesAndId(nameProcess);
-		DWORD arrayProcesses[APROCSIZE];
-		GetProcesses(*arrayProcesses);
+		std::shared_ptr<DWORD[]> arrayProcesses(new DWORD[APROCSIZE]);
+		GetProcesses(arrayProcesses);
 		std::vector<std::pair<std::wstring, DWORD> > foundProcess;
 		auto selection = [arrayProcesses, nameProcess, &foundProcess](auto it)
 		{
 			std::wstring namePTemp = GetNameProcess(it);
 			if (namePTemp == nameProcess)
 				foundProcess.emplace_back(namePTemp, it);
-			return &it == arrayProcesses + APROCSIZE;
+			return &it == arrayProcesses.get() + APROCSIZE;
 		};
-		std::find_if(arrayProcesses, arrayProcesses + APROCSIZE, selection);	
+		std::find_if(arrayProcesses.get(), arrayProcesses.get() + APROCSIZE, selection);
 		SelectionOfProcessForKill(foundProcess);
 	}
 	catch(const MyFormatException& ex)
@@ -57,10 +58,10 @@ int main()
 	}
 	return 0;
 }
-void GetProcesses(DWORD& arrayProcesses)
+void GetProcesses(std::shared_ptr<DWORD[]>& arrayProcesses)
 {
 	DWORD cbNeeded;
-	if (!EnumProcesses(&arrayProcesses, sizeof(arrayProcesses) * APROCSIZE, &cbNeeded))
+	if (!EnumProcesses(arrayProcesses.get(), sizeof(arrayProcesses.get()) * APROCSIZE, &cbNeeded))
 	{
 		throw myException[0];
 	}
@@ -73,7 +74,7 @@ void InitDataProcessesAndId(std::wstring& nameProcess)
 }
 std::wstring GetNameProcess(const DWORD& arrayProcess)
 {
-	wchar_t szProcessName[MAX_PATH] = TEXT("");
+	std::shared_ptr<wchar_t[]> szProcessName(new wchar_t[MAX_PATH] {TEXT("")});
 	HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION |
 		PROCESS_VM_READ,
 		FALSE, arrayProcess);
@@ -85,14 +86,13 @@ std::wstring GetNameProcess(const DWORD& arrayProcess)
 		if (EnumProcessModulesEx(hProcess, &hMod, sizeof(hMod),
 			&cbNeeded, 0x03))
 		{
-			GetModuleBaseName(hProcess, hMod, szProcessName,
-				sizeof(szProcessName) / sizeof(wchar_t));
+			GetModuleBaseName(hProcess, hMod, szProcessName.get(),
+				MAX_PATH);
 		}
-		TerminateProcess(hProcess, 0);
 		CloseHandle(hProcess);
 	}
 
-	return szProcessName;
+	return szProcessName.get();
 }
 DWORD SelectProcess(const std::vector<std::pair<std::wstring, DWORD> >& foundProcess)
 {
