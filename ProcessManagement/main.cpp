@@ -8,6 +8,25 @@
 
 unsigned int const APROCSIZE = 1024;
 
+class HandleWripper
+{
+public:
+	HandleWripper(HANDLE handle = INVALID_HANDLE_VALUE) : m_handle(handle) {}
+	HANDLE Get() const { return m_handle; };
+	~HandleWripper()
+	{
+		if (m_handle != INVALID_HANDLE_VALUE)
+		{
+			CloseHandle(m_handle);
+			m_handle = INVALID_HANDLE_VALUE;
+		}
+	}
+	HandleWripper(const HandleWripper& wrapper) = delete;
+	HandleWripper& operator=(const HandleWripper& wrapper) = delete;
+private:
+	HANDLE m_handle;
+};
+
 void GetProcesses(DWORD& arrayProcesses);
 void InitDataProcessesAndId(std::wstring& nameProcess);
 std::wstring GetNameProcess(const DWORD& arrayProcess);
@@ -50,7 +69,7 @@ int main()
 			return &it == arrayProcesses.get() + APROCSIZE;
 		};
 		std::find_if(arrayProcesses.get(), arrayProcesses.get() + APROCSIZE, selection);
-		SelectionOfProcessForKill(foundProcess);
+ 		SelectionOfProcessForKill(foundProcess);
 	}
 	catch(const MyFormatException& ex)
 	{
@@ -75,21 +94,20 @@ void InitDataProcessesAndId(std::wstring& nameProcess)
 std::wstring GetNameProcess(const DWORD& arrayProcess)
 {
 	std::shared_ptr<wchar_t[]> szProcessName(new wchar_t[MAX_PATH] {TEXT("")});
-	HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION |
+	HandleWripper hProcess = OpenProcess(PROCESS_QUERY_INFORMATION |
 		PROCESS_VM_READ,
 		FALSE, arrayProcess);
-	if (NULL != hProcess)
+	if (NULL != hProcess.Get())
 	{
 		HMODULE hMod;
 		DWORD cbNeeded;
 
-		if (EnumProcessModulesEx(hProcess, &hMod, sizeof(hMod),
+		if (EnumProcessModulesEx(hProcess.Get(), &hMod, sizeof(hMod),
 			&cbNeeded, 0x03))
 		{
-			GetModuleBaseName(hProcess, hMod, szProcessName.get(),
+			GetModuleBaseName(hProcess.Get(), hMod, szProcessName.get(),
 				MAX_PATH);
 		}
-		CloseHandle(hProcess);
 	}
 
 	return szProcessName.get();
@@ -129,13 +147,13 @@ void SelectionOfProcessForKill(const std::vector<std::pair<std::wstring, DWORD> 
 void KillProcess(DWORD selected)
 {
 	DWORD dwPriorityClass = 0;
-	HANDLE hProcess = OpenProcess(PROCESS_TERMINATE,
+	HandleWripper hProcess = OpenProcess(PROCESS_TERMINATE,
 		FALSE, selected);
-	if (hProcess == NULL)
+	if (hProcess.Get() == NULL)
 		throw myException[2];
 	else
 	{
-		if (TerminateProcess(hProcess, 0)) 
+		if (TerminateProcess(hProcess.Get(), 0)) 
 			std::cout << "Ok ";
 		else
 			throw myException[3];
