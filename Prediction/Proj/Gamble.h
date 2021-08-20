@@ -1,4 +1,6 @@
 #pragma once
+#ifndef GAMBLE_H
+#define GAMBLE_H
 #include <map>
 #include <string>
 #include <iostream>
@@ -20,3 +22,4 @@ public:
 Класс реализует функцию MakePrediction(std::string userName, int prediction)
 MakePrediction добавляет предсказание в мембер класса Gamble (std::map).
 */
+#endif // !GAMBLE_H

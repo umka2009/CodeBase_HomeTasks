@@ -139,11 +139,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ArrayHandleWrapper.cpp" />
     <ClCompile Include="Gamble.cpp" />
+    <ClCompile Include="HandleWrapper.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ArrayHandleWrapper.h" />
     <ClInclude Include="Gamble.h" />
+    <ClInclude Include="HandleWrapper.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

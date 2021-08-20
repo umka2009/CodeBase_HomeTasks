@@ -4,6 +4,8 @@
 #include <chrono>
 #include <vector>
 
+#include "HandleWrapper.h"
+#include "ArrayHandleWrapper.h"
 #include "Gamble.h"
 
 /*
@@ -47,7 +49,7 @@ int main()
 		Gamble firstPrediction;
 		DWORD threadId = 0;
 
-		HANDLE thread0 = CreateThread(
+		HandleWrapper thread0 = CreateThread(
 			0,
 			0,
 			Timer,
@@ -56,7 +58,7 @@ int main()
 			&threadId
 
 		);
-		if (thread0 == 0)
+		if (thread0.Get() == 0)
 		{
 			throw errorVec.myError[0];
 		}
@@ -64,37 +66,32 @@ int main()
 		InitUserData(userData);
 
 		DWORD threadId2 = 2;
-		std::vector<HANDLE> thread2 = {};
 		FunctData data(firstPrediction, userData);
-
 		InitializeCriticalSection(&CriticalSectionTemp);
 
-		for (int i = 0; i < 5; ++i)
-		{
-
-			thread2.emplace_back(CreateThread(
-				NULL,
-				0,
-				ThreadPrediction,
-				(LPVOID)&data,
-				0,
-				&threadId2
-			));
-			if (thread2[i] == 0)
+		ArrayHandleWrapper thread2;
+			for (int i = 0; i < 5; ++i)
 			{
-				throw errorVec.myError[0];
+				thread2.AddHendle(CreateThread(
+					NULL,
+					0,
+					ThreadPrediction,
+					(LPVOID)&data,
+					0,
+					&threadId2
+				));
+				if (thread2[i] == 0)
+				{
+					throw errorVec.myError[0];
+				}
 			}
-		}
-		WaitForMultipleObjects(thread2.size(), &thread2[0], TRUE, INFINITE);
-		std::for_each(thread2.begin(), thread2.end(), [](const auto& val) {
-			CloseHandle(val);
-			});
+	
+		WaitForMultipleObjects(thread2.Size(), &thread2[0], TRUE, INFINITE);
 		while (!isLocked)
 		{
 			Sleep(0);
 		};
-		WaitForSingleObject(thread0, INFINITE);
-		CloseHandle(thread0);
+		WaitForSingleObject(thread0.Get(), INFINITE);
 
 		DeleteCriticalSection(&CriticalSectionTemp);
 		firstPrediction.FindingWinner();
@@ -107,7 +104,6 @@ int main()
 	{
 		std::cout << &ex << std::endl;
 	}
-
 
 	return 0;
 }
